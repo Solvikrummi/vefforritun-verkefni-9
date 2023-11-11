@@ -129,7 +129,7 @@ export async function searchAndRender(parentElement, searchForm, query) {
   const results = await searchLaunches(query);
   setNotLoading(mainElement, searchForm);
 
-  const resultsEl = createSearchResults(results, query);
+  const resultsEl = createSearchResults(results, query, parentElement);
 
   mainElement.appendChild(resultsEl);
 }
@@ -176,14 +176,71 @@ export async function renderDetails(parentElement, id) {
   );
 
   parentElement.appendChild(container);
+  container.appendChild(backElement);
 
-  /* TODO setja loading state og sækja gögn */
+  // Setja loading state á meðan gögn eru sótt
+  setLoading(container);
 
-  // Tómt og villu state, við gerum ekki greinarmun á þessu tvennu, ef við
-  // myndum vilja gera það þyrftum við að skilgreina stöðu fyrir niðurstöðu
+  const result = await getLaunch(id);
+
+  // Fjarlægja loading state
+  setNotLoading(container);
+
   if (!result) {
-    /* TODO útfæra villu og tómt state */
+    const errorElement = el('p', {}, 'Villa við að sækja upplýsingar um geimskot.');
+    container.appendChild(errorElement);
+    return;
   }
 
-  /* TODO útfæra ef gögn */
+  // Birta gögn um geimskot
+  const detailsElement = el(
+    'div',
+    { class: 'launch-details' },
+    el('h2', {}, result.name),
+    el('p', {}, result.details),
+    // Bæta við fleiri upplýsingum eftir þörfum
+  );
+
+  container.appendChild(detailsElement);
+  /**
+  * Birta niðurstöður úr leit.
+  * @param {import('./api.types.js').Launch[] | null} results Niðurstöður úr leit
+  * @param {string} query Leitarstrengur.
+  * @param {HTMLElement} parentElement Element sem á að birta niðurstöður í.
+  */
+  function createSearchResults(results, query, parentElement) {
+    const list = el('ul', { class: 'results' });
+
+    if (!results) {
+      const noResultsElement = el('li', {}, `Villa við leit að ${query}`);
+      list.appendChild(noResultsElement);
+      return list;
+    }
+
+    if (results.length === 0) {
+      const noResultsElement = el(
+        'li',
+        {},
+        `Engar niðurstöður fyrir leit að ${query}`
+      );
+      list.appendChild(noResultsElement);
+      return list;
+    }
+
+    for (const result of results) {
+      const articleElement = el(
+        'li',
+        { class: 'article' },
+        el('h3', {}, result.title), // Assuming each result has a title
+        el('p', {}, result.summary), // Assuming each result has a summary
+        // Add more details about the article here
+      );
+
+      list.appendChild(articleElement);
+    }
+
+    return list;
+  }
+
+
 }

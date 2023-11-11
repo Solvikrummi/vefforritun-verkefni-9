@@ -71,5 +71,29 @@ export async function searchLaunches(query) {
  * @returns {Promise<LaunchDetail | null>} Geimskot.
  */
 export async function getLaunch(id) {
-  /* TODO útfæra */
+  const url = new URL(`launch/${id}/`, API_URL);
+
+  let response;
+  try {
+    response = await fetch(url);
+  } catch (e) {
+    console.error('Error fetching launch details');
+    return null;
+  }
+
+  if (!response.ok) {
+    console.error('Error status from server', response.status, response.statusText);
+    return null;
+  }
+
+  let json;
+  try {
+    json = await response.json();
+  } catch (e) {
+    console.error('Error processing JSON');
+    return null;
+  }
+
+  return json;
 }
+
